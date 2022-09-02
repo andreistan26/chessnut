@@ -12,9 +12,9 @@ namespace Board{
     Board::Board(){
         memset(bb_piece_type, 0, sizeof(bb_piece_type));
         memset(bb_occ, 0, sizeof(bb_occ));
-        memset(bb_occ_rot, 0, sizeof(bb_occ_rot));
-        memset(bb_occ_rot_main_diag, 0, sizeof(bb_occ_rot_main_diag));
-        memset(bb_occ_rot_second_diag, 0, sizeof(bb_occ_rot_second_diag));
+        bb_occ_rot = 0;
+        bb_occ_rot_main_diag = 0;
+        bb_occ_rot_second_diag = 0;
     }
 
     Board::Board(const char* fen_string): Board::Board(){
@@ -124,13 +124,10 @@ namespace Board{
     }
 
     void Board::update_occupied_boards(){
-        bb_occ_rot[0] = bb_rotate_90_cw(bb_occ[0]);
-        bb_occ_rot[1] = bb_rotate_90_cw(bb_occ[1]);
-        bb_occ_rot_main_diag[0] = bb_rotate_45_cw(bb_occ[0]);
-        bb_occ_rot_main_diag[1] = bb_rotate_45_cw(bb_occ[1]);
-        bb_occ_rot_second_diag[0] = bb_rotate_45_ccw(bb_occ[0]);
-        bb_occ_rot_second_diag[1] = bb_rotate_45_ccw(bb_occ[1]);
         bb_occ[2] = bb_occ[0] | bb_occ[1];
+        bb_occ_rot_main_diag = bb_rotate_45_cw(bb_occ[2]);
+        bb_occ_rot_second_diag = bb_rotate_45_ccw(bb_occ[2]);
+        bb_occ_rot = bb_rotate_90_cw(bb_occ[2]);
     }
 
     void Board::put_piece(int sq, PieceTypes type, int color){

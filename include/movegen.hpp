@@ -17,8 +17,8 @@
 #define BB_RANK_8 0xff00000000000000
 #define BB_RANK_2 0xff00
 #define BB_RANK_3 0xff00 << 8
-#define BB_RANK_7 0xff00 << 40LL
-#define BB_RANK_6 0xff00 << 32LL
+#define BB_RANK_7 0xff00ULL << 40
+#define BB_RANK_6 0xff00ULL << 32
 #define BB_FILE_A 0x101010101010101
 #define BB_FILE_H 0x8080808080808080
 
@@ -28,7 +28,7 @@ constexpr unsigned char shift_45[15] = {0, 1, 3, 6, 10, 15, 21, 28, 36, 43, 49, 
 extern Bitboard knight_attacks[64];// = { 0x20400, 0x50800, 0xA1100, 0x142200, 0x284400, 0x508800, 0xA01000, 0x402000, 0x2040004, 0x5080008, 0xA110011, 0x14220022, 0x28440044, 0x50880088, 0xA0100010, 0x40200020, 0x204000402, 0x508000805, 0xA1100110A, 0x1422002214, 0x2844004428, 0x5088008850, 0xA0100010A0, 0x4020002040, 0x20400040200, 0x50800080500, 0xA1100110A00, 0x142200221400, 0x284400442800, 0x508800885000, 0xA0100010A000, 0x402000204000, 0x2040004020000, 0x5080008050000, 0xA1100110A0000, 0x14220022140000, 0x28440044280000, 0x50880088500000, 0xA0100010A00000, 0x40200020400000, 0x204000402000000, 0x508000805000000, 0xA1100110A000000, 0x1422002214000000, 0x2844004428000000, 0x5088008850000000, 0xA0100010A0000000, 0x4020002040000000, 0x400040200000000, 0x800080500000000, 0x1100110A00000000, 0x2200221400000000, 0x4400442800000000, 0x8800885000000000, 0x100010A000000000, 0x2000204000000000, 0x4020000000000, 0x8050000000000, 0x110A0000000000, 0x22140000000000, 0x44280000000000, 0x88500000000000, 0x10A00000000000, 0x20400000000000};
 extern Bitboard king_attacks[64]; //= { 0x302, 0x705, 0xE0A, 0x1C14, 0x3828, 0x7050, 0xE0A0, 0xC040, 0x30203, 0x70507, 0xE0A0E, 0x1C141C, 0x382838, 0x705070, 0xE0A0E0, 0xC040C0, 0x3020300, 0x7050700, 0xE0A0E00, 0x1C141C00, 0x38283800, 0x70507000, 0xE0A0E000, 0xC040C000, 0x302030000, 0x705070000, 0xE0A0E0000, 0x1C141C0000, 0x3828380000, 0x7050700000, 0xE0A0E00000, 0xC040C00000, 0x30203000000, 0x70507000000, 0xE0A0E000000, 0x1C141C000000, 0x382838000000, 0x705070000000, 0xE0A0E0000000, 0xC040C0000000, 0x3020300000000, 0x7050700000000, 0xE0A0E00000000, 0x1C141C00000000, 0x38283800000000, 0x70507000000000, 0xE0A0E000000000, 0xC040C000000000, 0x302030000000000, 0x705070000000000, 0xE0A0E0000000000, 0x1C141C0000000000, 0x3828380000000000, 0x7050700000000000, 0xE0A0E00000000000, 0xC040C00000000000, 0x203000000000000, 0x507000000000000, 0xA0E000000000000, 0x141C000000000000, 0x2838000000000000, 0x5070000000000000, 0xA0E0000000000000, 0x40C0000000000000 };
 extern Bitboard pawn_attacks[2][64];
-extern byte rank_attacks[8][256]; 
+extern Bitboard rank_attacks[64][256]; 
 extern Bitboard file_attacks[64][256];
 extern Bitboard first_diagonal_attacks[64][256];
 extern Bitboard second_diagonal_attacks[64][256];
@@ -129,13 +129,17 @@ void init_lu_second_diag_att();
 void init_lu_pawn_att();
 void init_lu_king_att();
 void init_lu_knight_att();
+void init_all_attack_bitboards();
+
 
 void insert_moves(Bitboard bb_actions, Square from, MoveType type, Moves& moves);
 
 void generate_pawn_actions(Bitboard bb_pawns, Color color, Bitboard occupied[3], Moves& moves);
 void generate_knight_actions(Bitboard bb_knight, Color color, Bitboard occupied[3], Moves& moves);
 void generate_king_actions(Bitboard bb_king, Color color, Bitboard occupied[3], Moves& moves);
-void generate_rook_actions(Bitboard bb_rook, Color color, Bitboard occupied[3], Moves& moves);
+void generate_rook_actions(Bitboard bb_rook, Bitboard rotated_90, Color color, Bitboard occupied[3], Moves& moves);
+void generate_bishop_actions(Bitboard bb_bishop, Bitboard rotated_45_cw, Bitboard rotated_45_ccw, Color color, Bitboard occupied, Moves& moves);
+void generate_queen_actions(Bitboard bb_queen, Bitboard rotated_90, Bitboard rotated_45_cw, Bitboard rotated_45_ccw, Color color, Bitboard occupied[3], Moves& moves);
 
 Bitboard generate_pawn_attacks_bb(Bitboard bb_pawns, Color color);
 

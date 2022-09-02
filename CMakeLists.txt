@@ -4,7 +4,7 @@ project(ChessEngine)
 
 enable_testing()
 
-add_compile_options(-g)
+add_compile_options(-g -Wall)
 add_library(
     engine
     src/bitboard.cpp

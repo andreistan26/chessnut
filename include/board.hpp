@@ -29,9 +29,9 @@ namespace Board{
     struct Board{
         Bitboard bb_piece_type[2][6];
         Bitboard bb_occ[3];
-        Bitboard bb_occ_rot[2];
-        Bitboard bb_occ_rot_main_diag[2];
-        Bitboard bb_occ_rot_second_diag[2];
+        Bitboard bb_occ_rot;
+        Bitboard bb_occ_rot_main_diag;
+        Bitboard bb_occ_rot_second_diag;
         Color color_to_move;
         int enp_square;
         bool has_enp;

@@ -3,7 +3,7 @@
 Bitboard knight_attacks[64];
 Bitboard pawn_attacks[2][64];
 Bitboard king_attacks[64];
-byte rank_attacks[8][256];
+Bitboard rank_attacks[64][256];
 Bitboard file_attacks[64][256]; 
 Bitboard first_diagonal_attacks[64][256];
 Bitboard second_diagonal_attacks[64][256];
@@ -38,8 +38,8 @@ void init_lu_pawn_att(){
 }
 
 void init_lu_knight_att(){
-    for(int i = 0; i < 64; i++){
-        Bitboard knight_bitboard = (Bitboard)1<<i;
+    for(Bitboard i = 0; i < 64; i++){
+        Bitboard knight_bitboard = 1ULL<<i;
         knight_attacks[i] = (
                 get_down_right_att_bb(knight_bitboard)+
                 get_down_left_att_bb(knight_bitboard)+
@@ -55,9 +55,9 @@ void init_lu_knight_att(){
 
 void init_lu_king_att(){
     for(int i = 0; i < 64; i++){
-        Bitboard bb_king = 1 << i;
-        king_attacks[i] = ((bb_king & ~BB_FILE_H) << 1) | ((bb_king & ~BB_FILE_A) >> 1) | bb_king;
-        king_attacks[i] = ((king_attacks[i] & ~BB_RANK_8) << 8) | ((king_attacks[i] & ~BB_RANK_1) >> 8);
+        Bitboard bb_king = 1ULL << i;
+        king_attacks[i]  = ((bb_king & ~BB_FILE_H) << 1) | ((bb_king & ~BB_FILE_A) >> 1) | bb_king;
+        king_attacks[i] |= ((king_attacks[i] & ~BB_RANK_8) << 8) | ((king_attacks[i] & ~BB_RANK_1) >> 8);
         king_attacks[i] &= ~bb_king;
     }
 }
@@ -66,7 +66,7 @@ void init_lu_rank_att(){
     unsigned char index[] = {1, 2, 4, 8, 16, 32, 64, 128};
     for(int i = 0; i < 8; i++){
         for(int rank = 0; rank < 256; rank++){
-            byte attack = 0;
+            Bitboard attack = 0;
             if((rank & index[i]) != 0){
                 for(int it_right = i+1; it_right < 8; it_right++){
                     attack |= index[it_right];
@@ -78,9 +78,13 @@ void init_lu_rank_att(){
                     if((index[it_left] & rank) != 0)
                         break;
                 }
-                rank_attacks[i][rank] = attack;
+                //for simpler access when generating moves
+                for(int j=0; j < 8; j++)
+                    rank_attacks[j*8 + i][rank] = attack << (j*8);
             }else{
-                rank_attacks[i][rank] = 0;
+                //for simpler access when generating moves
+                for(int j=0; j < 8; j++)
+                    rank_attacks[j*8 + i][rank] = 0;
             }
         }
     }
@@ -103,7 +107,7 @@ void init_lu_first_diag_att(){
                         {5, 11}, {6, 10}, {7, 9}, {8}};
     int mappings[16][8] = {{0}, {7}, {6, 15}, {5, 14, 23}, {4, 13 ,22 ,31}, {3, 12, 21, 30 ,39},
                     {2, 11, 20, 29, 38, 47}, {1, 10, 19, 28, 37, 46, 55}, {0, 9, 18, 27, 36, 45, 54, 63}, 
-                    {8, 17, 26, 35, 44, 53, 62}, {16, 25, 34, 43, 52, 61}, {32, 41, 50 ,59}, {40, 49, 58},
+                    {8, 17, 26, 35, 44, 53, 62}, {16, 25, 34, 43, 52, 61}, {24, 33, 42, 51, 60}, {32, 41, 50 ,59}, {40, 49, 58},
                     {48, 57}, {56}};
     for(int i = 8; i >= 1;i--){ // size of diagonals
         for(int diag : diagonals[i]){ // for each diagonal of the {i} size
@@ -126,15 +130,29 @@ void init_lu_first_diag_att(){
             }
         }
     }
+
+    for(int i = 0; i < 64; i++){
+        int len = 8 - abs(i/8-i%8);
+        int mask = (1 << len)-1; 
+        for(int j = 0; j < 256; j++){
+            if(first_diagonal_attacks[i][j] != 0){
+               for(int k = j; k < 256; k++){
+                   if((k & mask) == j){
+                        first_diagonal_attacks[i][k] = first_diagonal_attacks[i][j];  
+                   }
+               } 
+            }
+        }
+    }
 }
 
 void init_lu_second_diagonal_att(){
     byte index[] = {1, 2, 4, 8, 16, 32, 64, 128};
     int diagonals[9][2] = {{0},{1, 15}, {2, 14}, {3, 13}, {4, 12},
                         {5, 11}, {6, 10}, {7, 9}, {8}};
-    int mappings[16][8] = {{0}, {8, 1}, {16, 9, 2}, {24, 17, 10, 3}, {32, 25, 18, 11, 4}, {40, 33, 26, 19, 12, 5},
+    int mappings[16][8] = {{0}, {0}, {8, 1}, {16, 9, 2}, {24, 17, 10, 3}, {32, 25, 18, 11, 4}, {40, 33, 26, 19, 12, 5},
                     {48, 41, 34, 27, 20, 13, 6}, {56, 49, 42, 35, 28, 21, 14, 7}, {57, 50, 43, 36, 29, 22, 15}, 
-                    {58, 51, 44, 37, 30, 23}, {59, 52, 45, 38, 31}, {60, 53, 46, 39}, {61, 54, 47}, {61,54, 47},
+                    {58, 51, 44, 37, 30, 23}, {59, 52, 45, 38, 31}, {60, 53, 46, 39}, {61, 54, 47},
                     {62, 55}, {63}};
     for(int i = 8; i >= 1;i--){ // size of diagonals
         for(int diag : diagonals[i]){ // for each diagonal of the {i} size
@@ -157,8 +175,32 @@ void init_lu_second_diagonal_att(){
             }
         }
     }
+    
+    for(int i = 0; i < 64; i++){
+        int len = (1+i/8+i%8)-(i/8)*(1+i/8+i%8)%8*2;
+        int mask = (1 << len)-1; 
+        for(int j = 0; j < 256; j++){
+            if(second_diagonal_attacks[i][j] != 0){
+               for(int k = j; k < 256; k++){
+                   if((k & mask) == j){
+                        second_diagonal_attacks[i][k] = second_diagonal_attacks[i][j];  
+                   }
+               } 
+            }
+        }
+    }
+
 }
 
+void init_all_attack_bitboards(){
+    init_lu_pawn_att();
+    init_lu_king_att();
+    init_lu_knight_att();
+    init_lu_rank_att();
+    init_lu_file_att();
+    init_lu_first_diag_att();
+    init_lu_second_diagonal_att();
+}
 
 void insert_moves(Bitboard bb_actions, Square from, MoveType type, Moves& moves){
     while(bb_actions){
@@ -228,17 +270,41 @@ void generate_king_actions(Bitboard bb_king, Color color, Bitboard occupied[3], 
     Bitboard bb_attacks = king_attacks[king_position] & occupied[NOT_COLOR(color)];
     insert_moves(bb_attacks, from, MoveType::KING_ATTACK, moves);
 
-    Bitboard bb_moves = king_attacks[king_position] & ~occupied[int(color)];
+    Bitboard bb_moves = king_attacks[king_position] & ~occupied[2];
     insert_moves(bb_moves, from, MoveType::KING_MOVE, moves);
 }
 
-void generate_rook_moves(Bitboard bb_rooks, Bitboard rotated_90, Color color, Bitboard occupied[3], Moves& moves){
+void generate_rook_actions(Bitboard bb_rooks, Bitboard rotated_90, Color color, Bitboard occupied[3], Moves& moves){
     while(bb_rooks){
         unsigned int rook_position = bit_scan_delete(bb_rooks);
         Square from = static_cast<Square>(rook_position);
-        Bitboard attack = (((rank_attacks[int(from) % 8][(occupied[2] >> (int(from)/8)) & 0xff])>>((int(from)/8)*8)) |
-        file_attacks[int(from)][(rotated_90 >> (int(from)%8)) % 0xff]) & (~occupied[int(color)]);       
+        Bitboard attack = ((rank_attacks[int(from)][(occupied[2] >> (int(from)/8*8)) & 0xff]) |
+        file_attacks[int(from)][(rotated_90 >> (int(from)%8*8)) & 0xff]) & (~occupied[int(color)]);       
         insert_moves(attack, from, MoveType::ROOK_MOVE, moves);
+    }
+}
+
+void generate_bishop_actions(Bitboard bb_bishops, Bitboard rotated_45_cw,
+        Bitboard rotated_45_ccw, Color color, Bitboard occupied, Moves& moves){
+    while(bb_bishops){
+        unsigned int bishop_position = bit_scan_delete(bb_bishops);
+        Square from = static_cast<Square>(bishop_position);
+        Bitboard attack = (first_diagonal_attacks[int(from)][(rotated_45_cw >> diagonal_shift_mine[int(from)]) & 0xff] | 
+        second_diagonal_attacks[int(from)][(rotated_45_ccw >> diagonal_second_shift_mine[int(from)]) & 0xff]) & ~occupied;
+        insert_moves(attack, from, MoveType::BISHOP_MOVE, moves);
+    }
+}
+
+void generate_queen_actions(Bitboard bb_queen, Bitboard rotated_90, Bitboard rotated_45_cw, Bitboard rotated_45_ccw, Color color,
+        Bitboard occupied[3], Moves& moves){
+    while(bb_queen){
+        unsigned int queen_position = bit_scan_delete(bb_queen);
+        Square from = static_cast<Square>(queen_position);
+        Bitboard attack = ((first_diagonal_attacks[int(from)][(rotated_45_cw >> diagonal_shift_mine[int(from)]) & 0xff]
+        | second_diagonal_attacks[int(from)][(rotated_45_ccw >> diagonal_second_shift_mine[int(from)]) & 0xff])
+        | ((rank_attacks[int(from)][(occupied[2] >> (int(from)/8*8)) & 0xff]) | file_attacks[int(from)][(rotated_90 >> (int(from)%8*8)) & 0xff]))
+        & ~occupied[int(color)];
+        insert_moves(attack, from, MoveType::QUEEN_MOVE, moves);
     }
 }
 

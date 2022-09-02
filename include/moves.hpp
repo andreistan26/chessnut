@@ -1,9 +1,10 @@
 #ifndef MOVES_H
 #define MOVES_H
-//#include "../include/board.hpp"
+
 #include "bitboard.hpp"
 #include <iostream>
 #include <vector>
+
 enum class MoveType{
     PAWN_PUSH_SINGLE,
     PAWN_PUSH_PROMO,  
@@ -24,19 +25,18 @@ enum class MoveType{
     CASTLE_LEFT
 };
 
-
-
-class Moves{
-    std::vector<Move> moves;
-public:
-    void add_move(Move move);
-    std::ostream& operator<<(std::ostream& os);
-};
-
 struct Move{
     Square from;
     Square to;
     MoveType move_type;
-    std::ostream& operator<<(std::ostream& os);
+    friend std::ostream& operator<<(std::ostream& os, const Move& move);
 };
+
+class Moves{
+public:
+    std::vector<Move> moves;
+    void add_move(Move move);
+    friend std::ostream& operator<<(std::ostream& os, const Moves& moves);
+};
+
 #endif
