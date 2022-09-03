@@ -1,7 +1,8 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
 
-#include "board.hpp"
+#include "bitboard.hpp"
+#include "moves.hpp"
 
 #define get_up_left_att_bb(X) (((X) & 0xfefefefefefe) << 15)
 #define get_up_right_att_bb(X) (((X) & 0x7f7f7f7f7f7f) << 17)

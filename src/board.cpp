@@ -143,4 +143,14 @@ namespace Board{
     void Board::make_move(Move move){
 
     }
+
+    void Board::generate_moves(){
+        generate_king_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::King)], color_to_move, bb_occ, moves);
+        generate_pawn_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Pawn)], color_to_move, bb_occ, moves);
+        generate_knight_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Knight)], color_to_move, bb_occ, moves);
+        generate_rook_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Rook)], bb_occ_rot, color_to_move, bb_occ, moves);
+        generate_bishop_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Bishop)], bb_occ_rot_main_diag, bb_occ_rot_second_diag, color_to_move, bb_occ[int(color_to_move)], moves);
+        generate_queen_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Queen)], bb_occ_rot, bb_occ_rot_main_diag, bb_occ_rot_second_diag, color_to_move, bb_occ, moves);
+    }
+
 }

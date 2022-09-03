@@ -2,6 +2,7 @@
 #define BOARD_H
 #include "moves.hpp"
 #include "bitboard.hpp"
+#include "movegen.hpp"
 #include <cstring>
 #define FEN_CHECK_PIECE(C) ((((C) <='Z' && (C) >= 'A') || ((C) <= 'z' && (C) >= 'a')) ? 1 : 0)
 #define FEN_CHECK_EMPTY(C) (((C) >= '1' && (C) <= '8') ? 1 : 0)
@@ -44,6 +45,10 @@ namespace Board{
         void make_move(Move move);
         void put_piece(int sq, PieceTypes type, int color);
         void erase_piece(int sq, PieceTypes type, int color);
+
+        void generate_moves();
+    private:
+        Moves moves;
     };
 }
 #endif
