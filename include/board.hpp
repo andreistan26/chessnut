@@ -37,7 +37,7 @@ namespace Board{
         int enp_square;
         bool has_enp;
     
-        Board();
+        Board(bool init_default_fen = false);
         Board(const char* fen_string);
 
         void update_occupied_boards();
@@ -46,7 +46,7 @@ namespace Board{
         void put_piece(int sq, PieceTypes type, int color);
         void erase_piece(int sq, PieceTypes type, int color);
 
-        void generate_moves();
+        void generate_pl_moves();
     private:
         Moves moves;
     };

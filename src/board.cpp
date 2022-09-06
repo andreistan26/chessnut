@@ -9,12 +9,14 @@ namespace Board{
     int half_move_counter = 0;
     int move_counter = 0;
 
-    Board::Board(){
+    Board::Board(bool init_default_fen){
         memset(bb_piece_type, 0, sizeof(bb_piece_type));
         memset(bb_occ, 0, sizeof(bb_occ));
         bb_occ_rot = 0;
         bb_occ_rot_main_diag = 0;
         bb_occ_rot_second_diag = 0;
+        if(init_default_fen)
+            Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }
 
     Board::Board(const char* fen_string): Board::Board(){
@@ -124,6 +126,8 @@ namespace Board{
     }
 
     void Board::update_occupied_boards(){
+        //TODO dont use the rotation functions, better set the bits by mapping
+        //after making a move
         bb_occ[2] = bb_occ[0] | bb_occ[1];
         bb_occ_rot_main_diag = bb_rotate_45_cw(bb_occ[2]);
         bb_occ_rot_second_diag = bb_rotate_45_ccw(bb_occ[2]);
@@ -144,13 +148,15 @@ namespace Board{
 
     }
 
-    void Board::generate_moves(){
+    void Board::generate_pl_moves(){
+        bb_occ[int(color_to_move)] |= bb_piece_type[int(NOT_COLOR(color_to_move))][int(PieceTypes::King)];
         generate_king_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::King)], color_to_move, bb_occ, moves);
         generate_pawn_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Pawn)], color_to_move, bb_occ, moves);
         generate_knight_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Knight)], color_to_move, bb_occ, moves);
         generate_rook_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Rook)], bb_occ_rot, color_to_move, bb_occ, moves);
         generate_bishop_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Bishop)], bb_occ_rot_main_diag, bb_occ_rot_second_diag, color_to_move, bb_occ[int(color_to_move)], moves);
         generate_queen_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Queen)], bb_occ_rot, bb_occ_rot_main_diag, bb_occ_rot_second_diag, color_to_move, bb_occ, moves);
+        bb_occ[int(color_to_move)] &= ~bb_piece_type[int(NOT_COLOR(color_to_move))][int(PieceTypes::King)];
     }
 
 }
