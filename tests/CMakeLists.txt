@@ -5,12 +5,12 @@ FetchContent_Declare(
   GIT_TAG release-1.12.1
 )
 FetchContent_MakeAvailable(googletest)
-add_executable(tests board_test.cpp move_generation_test.cpp)
+add_executable(tests eval_test.cpp move_generation_test.cpp) #search_test.cpp)
 
 
 target_link_libraries(tests
   PRIVATE
-  engine
+  libs
   GTest::gtest_main
 )
 include(GoogleTest)
