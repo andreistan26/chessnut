@@ -1,12 +1,15 @@
 #ifndef COMM_H
 #define COMM_H
-#include <iostream>
-#include <cstdio>
 #include <cstring>
 #include <string>
-#include "moves.hpp"
+#include <cassert>
+#include <deque>
+#include "movegen.hpp"
+#include "engine.hpp"
 
-using std::string;
+const char default_uci_name[] = "id name Dony\n";
+const char default_uci_author[] = "id author Dony_Author\n";
+extern std::deque<std::string> commands_queue;
 
 enum class CommsState{
     AWAIT_GUI, UCI_MODE
@@ -19,5 +22,7 @@ void comms_init();
 void init_engine();
 void sigint_handler();
 void command_move(Move move);
-bool process_input(std::string input);
+bool process_input(const std::string &input);
+std::string last_word(const std::string &string);
+void send_commands();
 #endif

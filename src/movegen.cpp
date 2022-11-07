@@ -78,11 +78,9 @@ void init_lu_rank_att(){
                     if((index[it_left] & rank) != 0)
                         break;
                 }
-                //for simpler access when generating moves
                 for(int j=0; j < 8; j++)
                     rank_attacks[j*8 + i][rank] = attack << (j*8);
             }else{
-                //for simpler access when generating moves
                 for(int j=0; j < 8; j++)
                     rank_attacks[j*8 + i][rank] = 0;
             }
@@ -177,7 +175,7 @@ void init_lu_second_diagonal_att(){
     }
     
     for(int i = 0; i < 64; i++){
-        int len = (1+i/8+i%8)-(i/8)*(1+i/8+i%8)%8*2;
+        int len = diagonal_sec_len[i];
         int mask = (1 << len)-1; 
         for(int j = 0; j < 256; j++){
             if(second_diagonal_attacks[i][j] != 0){
@@ -200,45 +198,67 @@ void init_all_attack_bitboards(){
     init_lu_file_att();
     init_lu_first_diag_att();
     init_lu_second_diagonal_att();
+    generate_square_bitboards();
 }
 
-void insert_moves(Bitboard bb_actions, Square from, MoveType type, Moves& moves){
+void insert_moves(Bitboard bb_actions, Square from, MoveType type, PieceTypes piece, Moves& moves){
     while(bb_actions){
         auto action_position = bit_scan_delete(bb_actions);
         Square to = static_cast<Square>(action_position);
-        moves.add_move({from, to, type});
+        moves.push_back({from, to, type, piece});
     }
 }
 
 void generate_pawn_actions(Bitboard bb_pawns, Color color, Bitboard occupied[3], Moves& moves){
-    Bitboard bb_push[2];
+    Bitboard bb_push[3];
     if(color == Color::White){
         bb_push[0] = (bb_pawns << 8) & ~occupied[2];
         bb_push[1] = ((bb_push[0] & BB_RANK_3) << 8) & ~occupied[2];
+        bb_push[2] = bb_push[0] & BB_RANK_8;
+        bb_push[0] &= ~bb_push[2];
         while(bb_push[0]){
             Square to = static_cast<Square>(bit_scan_delete(bb_push[0]));
             Square from = static_cast<Square>(int(to) - 8);
-            moves.add_move({from, to, MoveType::PAWN_PUSH_SINGLE});
+            Move mv(from, to, MoveType::Move, PieceTypes::Pawn);
+            moves.push_back(mv);
         }
 
         while(bb_push[1]){
             Square to = static_cast<Square>(bit_scan_delete(bb_push[1]));
             Square from = static_cast<Square>(int(to) - 16);
-            moves.add_move({from, to, MoveType::PAWN_PUSH_DOUBLE});
+            Move mv(from, to, MoveType::Double_Pawn_Push, PieceTypes::Pawn);
+            moves.push_back(mv);
+        }
+        
+        while(bb_push[2]){
+            Square to = static_cast<Square>(bit_scan_delete(bb_push[2]));
+            Square from = static_cast<Square>(int(to) - 8);
+            Move mv(from, to, MoveType::Promotion, PieceTypes::Pawn);
+            moves.push_back(mv);
         }
             
     }else{
         bb_push[0] = (bb_pawns >> 8) & ~occupied[2];
         bb_push[1] = ((bb_push[0] & BB_RANK_6) >> 8) & ~occupied[2];
+        bb_push[2] = bb_push[0] & BB_RANK_1;
+        bb_push[0] &= ~bb_push[2];
         while(bb_push[0]){
             Square to = static_cast<Square>(bit_scan_delete(bb_push[0]));
             Square from = static_cast<Square>(int(to) + 8);
-            moves.add_move({from, to, MoveType::PAWN_PUSH_SINGLE});
+            Move mv(from, to, MoveType::Move, PieceTypes::Pawn);
+            moves.push_back(mv);
         }
         while(bb_push[1]){
             Square to = static_cast<Square>(bit_scan_delete(bb_push[1]));
             Square from = static_cast<Square>(int(to) + 16);
-            moves.add_move({from, to, MoveType::PAWN_PUSH_DOUBLE});
+            Move mv(from, to, MoveType::Double_Pawn_Push, PieceTypes::Pawn);
+            moves.push_back(mv);
+        }
+        while(bb_push[2]){
+            Square to = static_cast<Square>(bit_scan_delete(bb_push[2]));
+            Square from = static_cast<Square>(int(to) + 8);
+            Move mv(from, to, MoveType::Promotion, PieceTypes::Pawn);
+            moves.push_back(mv);
         }
     }
 
@@ -246,7 +266,7 @@ void generate_pawn_actions(Bitboard bb_pawns, Color color, Bitboard occupied[3],
         unsigned int pawn_position = bit_scan_delete(bb_pawns);
         Square from = static_cast<Square>(pawn_position);
         Bitboard bb_attack = pawn_attacks[int(color)][pawn_position] & occupied[NOT_COLOR(color)];
-        insert_moves(bb_attack, from, MoveType::PAWN_ATTACK, moves);
+        insert_moves(bb_attack, from, MoveType::Capture, PieceTypes::Pawn, moves);
     }
 }
 
@@ -256,10 +276,10 @@ void generate_knight_actions(Bitboard bb_knights, Color color, Bitboard occupied
         Square from = static_cast<Square>(knight_position);
         
         Bitboard bb_attacks = knight_attacks[knight_position] & occupied[NOT_COLOR(color)]; 
-        insert_moves(bb_attacks, from, MoveType::KNIGHT_ATTACK, moves);
+        insert_moves(bb_attacks, from, MoveType::Capture, PieceTypes::Knight, moves);
         
         Bitboard bb_moves = knight_attacks[knight_position] & ~occupied[int(color)];
-        insert_moves(bb_moves, from, MoveType::KNIGHT_MOVE, moves);
+        insert_moves(bb_moves, from, MoveType::Move, PieceTypes::Knight, moves);
     }
 }
 
@@ -268,10 +288,10 @@ void generate_king_actions(Bitboard bb_king, Color color, Bitboard occupied[3], 
     Square from = static_cast<Square>(king_position);
 
     Bitboard bb_attacks = king_attacks[king_position] & occupied[NOT_COLOR(color)];
-    insert_moves(bb_attacks, from, MoveType::KING_ATTACK, moves);
+    insert_moves(bb_attacks, from, MoveType::Capture, PieceTypes::King, moves);
 
     Bitboard bb_moves = king_attacks[king_position] & ~occupied[2];
-    insert_moves(bb_moves, from, MoveType::KING_MOVE, moves);
+    insert_moves(bb_moves, from, MoveType::Move, PieceTypes::King, moves);
 }
 
 void generate_rook_actions(Bitboard bb_rooks, Bitboard rotated_90, Color color, Bitboard occupied[3], Moves& moves){
@@ -280,7 +300,7 @@ void generate_rook_actions(Bitboard bb_rooks, Bitboard rotated_90, Color color, 
         Square from = static_cast<Square>(rook_position);
         Bitboard attack = ((rank_attacks[int(from)][(occupied[2] >> (int(from)/8*8)) & 0xff]) |
         file_attacks[int(from)][(rotated_90 >> (int(from)%8*8)) & 0xff]) & (~occupied[int(color)]);       
-        insert_moves(attack, from, MoveType::ROOK_MOVE, moves);
+        insert_moves(attack, from, MoveType::Move, PieceTypes::Rook, moves);
     }
 }
 
@@ -291,7 +311,7 @@ void generate_bishop_actions(Bitboard bb_bishops, Bitboard rotated_45_cw,
         Square from = static_cast<Square>(bishop_position);
         Bitboard attack = (first_diagonal_attacks[int(from)][(rotated_45_cw >> diagonal_shift_mine[int(from)]) & 0xff] | 
         second_diagonal_attacks[int(from)][(rotated_45_ccw >> diagonal_second_shift_mine[int(from)]) & 0xff]) & ~occupied;
-        insert_moves(attack, from, MoveType::BISHOP_MOVE, moves);
+        insert_moves(attack, from, MoveType::Move, PieceTypes::Bishop, moves);
     }
 }
 
@@ -304,7 +324,7 @@ void generate_queen_actions(Bitboard bb_queen, Bitboard rotated_90, Bitboard rot
         | second_diagonal_attacks[int(from)][(rotated_45_ccw >> diagonal_second_shift_mine[int(from)]) & 0xff])
         | ((rank_attacks[int(from)][(occupied[2] >> (int(from)/8*8)) & 0xff]) | file_attacks[int(from)][(rotated_90 >> (int(from)%8*8)) & 0xff]))
         & ~occupied[int(color)];
-        insert_moves(attack, from, MoveType::QUEEN_MOVE, moves);
+        insert_moves(attack, from, MoveType::Move, PieceTypes::Queen, moves);
     }
 }
 

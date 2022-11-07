@@ -13,8 +13,8 @@ int main(){
     Board::Board board;
     while(true){
         getline(cin, input);
-        if(process_input(input)){
-            send_command();
+        if(!input.empty() && process_input(input)){
+            send_commands();
         }
     }
     return 0;

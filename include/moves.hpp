@@ -5,37 +5,37 @@
 #include <iostream>
 #include <vector>
 
-enum class MoveType{
-    PAWN_PUSH_SINGLE,
-    PAWN_PUSH_PROMO,  
-    PAWN_PUSH_DOUBLE,
-    PAWN_ATTACK,        
-    PAWN_ENP_ATTACK,   
-    KNIGHT_MOVE,
-    KNIGHT_ATTACK,
-    KING_MOVE,
-    KING_ATTACK,
-    ROOK_MOVE,          
-    ROOK_ATTACK,        
-    BISHOP_MOVE,        
-    BISHOP_ATTACK,      
-    QUEEN_MOVE,
-    QUEEN_ATTACK,
-    CASTLE_RIGHT,
-    CASTLE_LEFT
+enum class MoveType : unsigned int{
+    Move,
+    Capture,
+    Ep,
+    Castle,
+    Promotion,
+    Double_Pawn_Push,
+    Empty
 };
 
+extern const char *move_type_to_string[7];
 struct Move{
     Square from;
     Square to;
     MoveType move_type;
+    PieceTypes piece;
+    PieceTypes captured;
+
+    Move();
+    Move(const Square from_, const Square to_, const MoveType move_type_ , const PieceTypes piece_ = PieceTypes::Empty, const PieceTypes captured_ = PieceTypes::Empty);
+    Move(const std::string& move_str);
+    
+    std::string to_string_uci();
+    Move& operator=(const std::string &move_str);
     friend std::ostream& operator<<(std::ostream& os, const Move& move);
+
+    bool empty();
 };
 
-class Moves{
+class Moves : public std::vector<Move>{
 public:
-    std::vector<Move> moves;
-    void add_move(Move move);
     friend std::ostream& operator<<(std::ostream& os, const Moves& moves);
 };
 
