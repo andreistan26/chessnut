@@ -14,8 +14,8 @@ std::string IrreversibleData::to_string(bool indent) const{
     
     if(has_enp == true)   
         str +=  indent_str  + "En Passant square : " 
-                        + to_string('a' + int(enp_square) % 8) 
-                        + std::to_string(int(enp_square) / 8 + 1) 
+                        + (char)((int)'a' + int(enp_square) % 8)
+                        + std::to_string(int(enp_square) / 8 + 1)
                         + "\n";
     
     str += indent_str + "Halfmove Clock " + std::to_string(halfmove_clock) + "\n"; 
