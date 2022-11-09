@@ -12,13 +12,13 @@ Move search_negamax_root(Board::Board &pos, int depth){
         moves.pop_back();
         int score = -search_negamax(pos, depth-1, depth_map, true);
         pos.unmake_move(move);
-        if(score > max){
+        if(score > max && score != Score::ILLEGAL_MOVE){
             max_move = move;
             max = score;
         }
     }
-    for(auto &[key, val] : depth_map )
-       std::cerr << key << "   " << val << "\n";
+    // for(auto &[key, val] : depth_map )
+    //    std::cerr << key << "   " << val << "\n";
 
     return max_move;
 }
@@ -30,7 +30,7 @@ int search_negamax(Board::Board &pos, int depth, std::unordered_map<int, int> &d
     else
         depth_map[depth]++;
 	if(pos.is_attacking(pos.get_king_pos(NOT_COLOR_C(pos.color_to_move)), NOT_COLOR_C(pos.color_to_move), true)){
-            return Score::MATE + (is_first_ply == false ? -1 : 0) ;
+            return ILLEGAL_MOVE;
 	}
 
 	if(depth == 0){
@@ -46,7 +46,7 @@ int search_negamax(Board::Board &pos, int depth, std::unordered_map<int, int> &d
         moves.pop_back();
         int score = -search_negamax(pos, depth-1, depth_map, false);
         pos.unmake_move(move);
-        if(score > max)
+        if(score > max && score != Score::ILLEGAL_MOVE)
             max = score;
     }
 
