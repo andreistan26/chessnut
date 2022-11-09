@@ -178,7 +178,7 @@ namespace Board{
         }
         
         update_castle_rights(move);
-        //update_en_passant(move);
+        update_en_passant(move);
         update_occupied_boards();
         color_to_move = NOT_COLOR_C(color_to_move);
     }
@@ -200,7 +200,7 @@ namespace Board{
 
         if(move.move_type == MoveType::Double_Pawn_Push){
             irr_data.has_enp = true;
-            irr_data.enp_square = move.to;
+            irr_data.enp_square = static_cast<Square>(int(move.to) + (color_to_move == Color::White ? -8 : 8));
         }else{
             irr_data.has_enp = false;
         }
@@ -242,7 +242,7 @@ namespace Board{
                 }
             }else{
                 put_piece(int(Square::e8), PieceTypes::King, int(color_to_move));
-                if(move.to == Square::g1){
+                if(move.to == Square::g8){
                     erase_piece(int(Square::g8), PieceTypes::King, int(color_to_move));
                     put_piece(int(Square::h8), PieceTypes::Rook, int(color_to_move));
                     erase_piece(int(Square::f8), PieceTypes::Rook, int(color_to_move));
@@ -254,11 +254,11 @@ namespace Board{
                     //exit(4);
                 }
             }
-        // }else if(move.move_type == MoveType::Ep){
-        //     erase_piece(int(move.to), PieceTypes::Pawn, int(color_to_move));
-        //     int enemy_pawn_sq = int(move.to) + (color_to_move == Color::White ? -8 : 8);
-        //     put_piece(int(enemy_pawn_sq), PieceTypes::Pawn, NOT_COLOR(color_to_move));
-        //     put_piece(int(move.from), move.piece, int(color_to_move));
+        }else if(move.move_type == MoveType::Ep){
+            erase_piece(int(move.to), PieceTypes::Pawn, int(color_to_move));
+            int enemy_pawn_sq = int(move.to) + (color_to_move == Color::White ? -8 : 8);
+            put_piece(int(enemy_pawn_sq), PieceTypes::Pawn, NOT_COLOR(color_to_move));
+            put_piece(int(move.from), move.piece, int(color_to_move));
         }else if(move.move_type == MoveType::Promotion){
             erase_piece(int(move.to), PieceTypes::Queen, int(color_to_move));
             put_piece(int(move.from), move.piece, int(color_to_move));
@@ -281,15 +281,17 @@ namespace Board{
         bb_occ[int(color_to_move)] |= bb_piece_type[int(NOT_COLOR(color_to_move))][int(PieceTypes::King)];
         generate_king_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::King)], color_to_move, bb_occ, moves);
 
-        // if(irr_data.has_enp){
-        //     int attack_square = int(irr_data.enp_square) + (color_to_move == Color::White ? 8 : -8);
-        //     put_piece(attack_square, PieceTypes::Pawn, NOT_COLOR(color_to_move));
-        //     generate_pawn_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Pawn)], color_to_move, bb_occ, moves);
-        //     erase_piece(attack_square, PieceTypes::Pawn, NOT_COLOR(color_to_move));
-        // }
-        // else{
+        if(irr_data.has_enp){
+            put_piece(int(irr_data.enp_square), PieceTypes::Pawn, NOT_COLOR(color_to_move));
             generate_pawn_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Pawn)], color_to_move, bb_occ, moves);
-        // }
+            erase_piece(int(irr_data.enp_square), PieceTypes::Pawn, NOT_COLOR(color_to_move));
+            for(Move &move : moves)
+                if(move.to == irr_data.enp_square)
+                    move.move_type = MoveType::Ep;
+        }
+        else{
+            generate_pawn_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Pawn)], color_to_move, bb_occ, moves);
+        }
 
         generate_knight_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Knight)], color_to_move, bb_occ, moves);
         generate_rook_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::Rook)], bb_occ_rot, color_to_move, bb_occ, moves);

@@ -9,7 +9,7 @@
 #define KNIGHT_W 337
 #define PAWN_W 82
 enum Score : int {
-	MATE = QUEEN_W * 12
+	MATE = QUEEN_W * 12, ILLEGAL_MOVE = QUEEN_W * 13
 };
 const int material_w[] = { PAWN_W, BISHOP_W, KNIGHT_W, ROOK_W, QUEEN_W, KING_W };
 
