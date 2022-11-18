@@ -140,7 +140,7 @@ namespace Board{
     }
     
     MoveType Board::get_type(Move &move){
-        if(move.move_type == MoveType::Promotion) return MoveType::Promotion;
+        if(move.move_type == MoveType::Promotion || move.move_type == MoveType::Capture) return move.move_type;
         if(move.piece == PieceTypes::Pawn && abs(int(move.from) - int(move.to)) == 16){
             return MoveType::Double_Pawn_Push;
         }else if(move.piece == PieceTypes::King && (abs(int(move.from) - int(move.to)) > 1 && abs(int(move.from) - int(move.to)) < 5)){
@@ -170,6 +170,7 @@ namespace Board{
             put_piece(int(move.to), PieceTypes::Queen, int(color_to_move));
             erase_piece(int(move.from), move.piece, int(color_to_move));
         }else{
+            //if(move.move_type != MoveType::Capture)
             update_move_capture(move);
             if(move.move_type == MoveType::Capture)
                 erase_piece(int(move.to), move.captured, NOT_COLOR(color_to_move));
@@ -178,7 +179,7 @@ namespace Board{
         }
         
         update_castle_rights(move);
-        update_en_passant(move);
+        //update_en_passant(move);
         update_occupied_boards();
         color_to_move = NOT_COLOR_C(color_to_move);
     }
@@ -276,7 +277,7 @@ namespace Board{
 
 
 
-    Moves Board::generate_pl_moves(){
+    Moves Board::generate_pl_moves(bool castles){
         Moves moves;
         bb_occ[int(color_to_move)] |= bb_piece_type[int(NOT_COLOR(color_to_move))][int(PieceTypes::King)];
         generate_king_actions(bb_piece_type[int(color_to_move)][int(PieceTypes::King)], color_to_move, bb_occ, moves);
@@ -300,6 +301,16 @@ namespace Board{
         bb_occ[int(color_to_move)] &= ~bb_piece_type[int(NOT_COLOR(color_to_move))][int(PieceTypes::King)];
         
         generate_castle_moves(moves);
+        return moves;
+    }
+
+    Moves Board::generate_captures(){
+        Moves moves;
+        for(Move move : generate_pl_moves(false)){
+            update_move_capture(move);
+            if(move.move_type == MoveType::Capture)
+                moves.push_back(move);
+        }
         return moves;
     }
 

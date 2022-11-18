@@ -1,7 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include "moves.hpp"
-#include "types.hpp"
 #include "bitboard.hpp"
 #include "movegen.hpp"
 #include "undo_stack.hpp"
@@ -43,9 +42,6 @@ namespace Board{
         INFO_ALL            = 0xF
     };
     
-    //OPERATORS_FOR(INFO_BOARD_FLAGS)
-
-
     struct Board{
         Bitboard bb_piece_type[2][6];
         Bitboard bb_occ[3];
@@ -62,7 +58,8 @@ namespace Board{
         void char_parse(char c, int &sq);
         void make_move(Move &move);
         void unmake_move(Move &move);
-        Moves generate_pl_moves();
+        Moves generate_pl_moves(bool castles=true);
+        Moves generate_captures();
 
         int evaluate();
         
@@ -70,14 +67,11 @@ namespace Board{
 
         void update_move_capture(Move &move);
 
-        //test if searching trough generated moves vs making moves backwards
-        //TODO define check detection as internal function
         bool is_attacking(Square sq, Color sq_color, bool is_king=true);
         Square get_king_pos(Color color);
         PieceTypes get_piece(Square sq);
         MoveType get_type(Move &move);
         void generate_castle_moves(Moves &moves);
-
         std::string debug_info(int flags = INFO_ALL) const ;
         const char print_square (int square) const;
         friend std::ostream& operator<<(std::ostream& , const Board &board);

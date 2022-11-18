@@ -38,3 +38,8 @@ std::string UndoStack::to_string(bool indent) const{
     str += indent_str + "stack size : " + std::to_string(size()) + "\n";
     return str;
 }
+
+void UndoStack::clear(){
+    while(!empty())
+        pop();
+}
