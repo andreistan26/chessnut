@@ -22,6 +22,7 @@ struct IrreversibleData{
 class UndoStack : public std::stack<IrreversibleData>{
 public:
     std::string to_string(bool indent = true) const;
+    void clear();
 }; 
 
 
