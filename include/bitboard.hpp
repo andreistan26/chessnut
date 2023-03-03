@@ -15,7 +15,7 @@
 extern Bitboard square_bb[64];
 void generate_square_bitboards();
 
-inline unsigned int pop_count(Bitboard bb){
+inline long long int pop_count(Bitboard bb){
     return _mm_popcnt_u64(bb);
 }
 
@@ -54,14 +54,14 @@ inline void erase_bit(Bitboard &bitboard, const int &square){
 }
 
 inline void erase_bit_byte(byte &b, const int &bit){
-    b &= ~(1 << (bit-1));
+    b &= ~(1 << ((byte)bit-1));
 }
 
 inline bool check_bit_byte(const byte &b, const int &bit){
     return (b >> (bit - 1)) & 1;
 }
 
-enum class PieceTypes : int{
+enum class PieceTypes : uint8_t{
     Pawn,
     Bishop,
     Knight,
@@ -73,12 +73,12 @@ enum class PieceTypes : int{
 
 extern char piece_to_char[2][7];
 
-enum class Color{
+enum class Color : uint8_t{
     White,
     Black
 };
 
-enum class Square{
+enum class Square : uint8_t{
     a1, b1, c1, d1, e1, f1, g1, h1,
     a2, b2, c2, d2, e2, f2, g2, h2,
     a3, b3, c3, d3, e3, f3, g3, h3,

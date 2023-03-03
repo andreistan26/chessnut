@@ -55,4 +55,16 @@ std::string Move::to_string_uci(){
     return str;
 }
 
+std::unordered_map<Square, std::pair<Square, Square>> rook_map = {
+    {Square::c1, {Square::a1, Square::d1}},
+    {Square::g1, {Square::h1, Square::f1}},
+    {Square::c8, {Square::a8, Square::d8}},
+    {Square::g8, {Square::h8, Square::f8}}
+};
 
+std::unordered_map<Square, std::pair<Square, Square>> castled_rook_by_king = {
+    {Square::b1, {Square::a1, Square::d1}},
+    {Square::f1, {Square::h1, Square::f1}},
+    {Square::b8, {Square::a8, Square::d8}},
+    {Square::f8, {Square::h8, Square::f8}}
+};

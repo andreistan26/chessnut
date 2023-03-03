@@ -1,12 +1,18 @@
 #ifndef BOARD_H
 #define BOARD_H
+
+#include <map>
+#include <stdlib.h>
+
+#include <ctype.h>
+#include "evaluate.hpp"
 #include "moves.hpp"
 #include "bitboard.hpp"
 #include "movegen.hpp"
 #include "undo_stack.hpp"
-#include <unordered_map>
 #include "logger.hpp"
-#include <cstring>
+#include "tt.hpp"
+
 #define FEN_CHECK_PIECE(C) ((((C) <='Z' && (C) >= 'A') || ((C) <= 'z' && (C) >= 'a')) ? 1 : 0)
 #define FEN_CHECK_EMPTY(C) (((C) >= '1' && (C) <= '8') ? 1 : 0)
 #define CASTLE_LEFT 0
@@ -28,10 +34,13 @@
 namespace Board{
     extern Color engine_color;
     extern Color current_turn_color;
-    
 
     extern int half_move_counter;
     extern int move_counter;
+
+    extern const char *DEFAULT_FEN;
+    
+    extern std::map<char, PieceTypes> char_piece_map;
 
     enum INFO_BOARD_DEBUG_FLAGS: int{
         INFO_NONE           = 0x0,
@@ -39,7 +48,7 @@ namespace Board{
         INFO_IRR_DATA       = 0x2,
         INFO_UNDO_STACK     = 0x4,
         INFO_COLOR_TO_MOVE  = 0x8,
-        INFO_ALL            = 0xF
+        INFO_ALL            = 0xF  
     };
     
     struct Board{
@@ -51,18 +60,18 @@ namespace Board{
         Color color_to_move;
         IrreversibleData irr_data; 
         UndoStack undo_stack;
-    
+        uint64_t hash_key;
+        Evaluator eval;
+        
         Board(bool init_default_fen = false);
         Board(const char* fen_string);
 
-        void char_parse(char c, int &sq);
+        void set_fen(const char *fen_string);
         void make_move(Move &move);
         void unmake_move(Move &move);
         Moves generate_pl_moves(bool castles=true);
         Moves generate_captures();
 
-        int evaluate();
-        
         unsigned int piece_count(const PieceTypes &piece, const Color &color);
 
         void update_move_capture(Move &move);
@@ -77,6 +86,7 @@ namespace Board{
         friend std::ostream& operator<<(std::ostream& , const Board &board);
     private:
 
+        void single_update_castle_rights(bool value, Color color, bool left);
         void update_occupied_boards();
         void unmake_castle_move(const Move &move);
         void put_piece(int sq, PieceTypes type, int color);
@@ -84,6 +94,11 @@ namespace Board{
         void update_castle_rights(const Move &move);
         void make_castle_move(const Move &move);
         void update_en_passant(const Move &move);
+        void change_color();
+
+        void set_square_fen(char c, int &sq);
     };
+
+    int evaluate(Board &board);
 }
 #endif

@@ -13,6 +13,8 @@ bool process_input(const std::string& input){
     std::string command;
     log_stream << "> " << input << '\n';
     if(input == "uci"){
+        Move move;
+        log_stream << sizeof(move) << std::endl;
         comms_state = CommsState::UCI_MODE;
         commands_queue.push_back(default_uci_name);
         commands_queue.push_back(default_uci_author);
@@ -47,8 +49,6 @@ bool process_input(const std::string& input){
     else
         return true;
 }
-
-
 
 void send_commands(){
     while(!commands_queue.empty()){

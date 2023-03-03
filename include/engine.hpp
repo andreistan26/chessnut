@@ -25,17 +25,18 @@ public:
     void reset_time_new_move();
 };
 
-struct Engine{
+class Engine{
+    Board::Board board;
+    TimeProfile time_profile;
+    EngineState engine_state;
+    Move last_move;
+    Move search_move_internal();
+
+public:
     Engine();
     void init();
     void update_op_move(Move move, bool is_opponent);
     Move search_move();
-private:
-    EngineState engine_state;
-    Move last_move;
-    Board::Board board;
-    TimeProfile time_profile;
-    Move search_move_internal();
 };
 
 

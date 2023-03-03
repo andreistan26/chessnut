@@ -11,7 +11,7 @@ struct IrreversibleData{
     bool has_enp;
     Square enp_square;
     byte halfmove_clock;
-
+    
     IrreversibleData();
     IrreversibleData(int castle_rights[2][2], bool has_enp, Square enp_square, byte halfmove_clock);
     std::string to_string(bool indent = true) const ;

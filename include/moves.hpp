@@ -4,8 +4,10 @@
 #include "bitboard.hpp"
 #include <iostream>
 #include <vector>
-
-enum class MoveType : unsigned int{
+#include <unordered_map>
+#include <stdint.h>
+#include <utility>
+enum class MoveType : uint8_t{
     Move,
     Capture,
     Ep,
@@ -14,6 +16,10 @@ enum class MoveType : unsigned int{
     Double_Pawn_Push,
     Empty
 };
+
+extern std::unordered_map<Square, std::pair<Square, Square>> rook_map;
+
+extern std::unordered_map<Square, std::pair<Square, Square>> castled_rook_by_king;
 
 extern const char *move_type_to_string[7];
 struct Move{
