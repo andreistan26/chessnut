@@ -7,6 +7,19 @@ uint64_t prns_color;
 
 TT t_table;
 
+TT_Entry::TT_Entry(){
+    key = 0;
+    type = NodeType::EMPTY;
+    value = 0;
+    depth = 0;
+}
+TT_Entry::TT_Entry(uint64_t key, uint8_t depth, uint16_t value, NodeType type, Move move){
+    this->key = key;
+    this->depth = depth;
+    this->value = value;
+    this->type = type;
+    this->move = move;
+}
 
 TT::TT() : table_size{1 << 24}{
     entries = new TT_Entry[table_size]();

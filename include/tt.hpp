@@ -9,7 +9,7 @@ extern uint64_t prns_ep[8];
 extern uint64_t prns_color;
 
 enum class NodeType : uint8_t {
-    EXACT, ALPHA, BETA, ILLEGAL
+    EXACT, ALPHA, BETA, ILLEGAL, EMPTY
 };
 
 struct TT_Entry{
@@ -18,6 +18,8 @@ struct TT_Entry{
     uint16_t value;
     NodeType type;
     Move move;
+    TT_Entry();
+    TT_Entry(uint64_t key, uint8_t depth, uint16_t value, NodeType type, Move move);
 };
 
 class ZobristHash{

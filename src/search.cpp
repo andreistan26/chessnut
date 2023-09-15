@@ -29,12 +29,17 @@ int search_negamax(Board::Board &pos, int depth, std::unordered_map<int, int> &d
         depth_map.emplace(depth, 1);
     else
         depth_map[depth]++;
-	if(pos.is_attacking(pos.get_king_pos(NOT_COLOR_C(pos.color_to_move)), NOT_COLOR_C(pos.color_to_move), true)){
+	
+    if(pos.is_attacking(pos.get_king_pos(NOT_COLOR_C(pos.color_to_move)), NOT_COLOR_C(pos.color_to_move), true)){
             return ILLEGAL_MOVE;
 	}
 
 	if(depth == 0){
-        return evaluate(pos);
+#ifndef ITERATIVE_EVAL
+        return Board::evaluate(pos);
+#else
+        return pos.eval.get_score();
+#endif
 	}
 
     Moves moves = pos.generate_pl_moves();
@@ -80,9 +85,42 @@ int search_ab(Board::Board &pos, int depth, int alpha, int beta){
 	if(pos.is_attacking(pos.get_king_pos(NOT_COLOR_C(pos.color_to_move)), NOT_COLOR_C(pos.color_to_move), true)){
             return Score::ILLEGAL_MOVE;
 	}
-	if(depth == 0){
-        return evaluate(pos);
-	}
+
+    //TT_Entry &ref = t_table[pos.hash_key];
+
+    // // empty 
+    
+    /*
+    if(ref.key == pos.hash_key && ref.depth >= depth){
+        int score;
+        if      (ref.type == NodeType::ALPHA && ref.value <= alpha)
+            score = alpha;
+        else if (ref.type == NodeType::BETA && ref.value >= beta) 
+            score = beta;
+        else if (ref.type == NodeType::ILLEGAL)
+            return Score::ILLEGAL_MOVE;
+        return (int)score * nm_score_sign(pos.color_to_move);
+    }
+    */
+    //ref.type = NodeType::ALPHA;
+    //ref.key = pos.hash_key;
+    //ref.depth = depth;
+	
+    if(depth == 0){
+#ifndef ITERATIVE_EVAL
+        int eval_score = Board::evaluate(pos);
+#else
+        int eval_score = pos.eval.get_score();
+#endif
+        //ref = TT_Entry(
+           // pos.hash_key,
+           // 0,
+           // eval_score,
+           // NodeType::EXACT,
+          //  Move()
+        //);
+        return eval_score;
+    }
     
     Moves moves = pos.generate_pl_moves();
     while(!(moves).empty()){
@@ -91,14 +129,25 @@ int search_ab(Board::Board &pos, int depth, int alpha, int beta){
         moves.pop_back();
         int score = -search_ab(pos, depth-1, -beta, -alpha);
         pos.unmake_move(move);
-        if(score == ILLEGAL_MOVE)
+        if(score == Score::ILLEGAL_MOVE){
+            //if(ref.type == NodeType::EMPTY) {
+                // ref.move = move;
+                //ref.type = NodeType::ILLEGAL;
+            //}
             continue;
-        if(score >= beta )
+        } if(score >= beta) {
+            //ref.type = NodeType::BETA;
+            //ref.move = move;
+            //ref.value = score;
             return beta;
-        if(score > alpha )
+        } if(score > alpha) {
+ //           ref.type = NodeType::EXACT;
+   //         ref.move = move;
             alpha = score;
+        }
     }
-
+    //ref.type = NodeType::ALPHA;
+    //ref.value = alpha;
     return alpha;
 }
 
